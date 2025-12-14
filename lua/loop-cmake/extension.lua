@@ -119,8 +119,7 @@ function M.get_tasks(config)
         ---@type loop.Task
         local task = {
             name = "Configure All",
-            type = "build",
-            command = { "true" },
+            type = "composite",
             depends_on = {}
         }
         for _, t in ipairs(tasks) do
