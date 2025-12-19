@@ -1,5 +1,3 @@
-require('loop.task.taskdef')
-
 ---@class CMakeProfile
 ---@field name string
 ---@field build_type '"Debug"'|'"Release"'|'"RelWithDebInfo"'|'"MinSizeRel"' # required
@@ -208,7 +206,7 @@ end
 -- ----------------------------------------------------------------------
 -- Core task generator
 -- ----------------------------------------------------------------------
----@param tasks loop.Task[]
+---@param tasks loop.taskTemplate[][]
 ---@param cmake_path string
 ---@param ctest_path string
 ---@param cfg CMakeProfile
@@ -239,7 +237,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             table.insert(cmd, "--")
             vim.list_extend(cmd, strtools.cmd_to_string_array(cfg.build_tool_args))
         end
-        ---@type loop.Task
+        ---@type loop.taskTemplate[]
         local task = {
             name = "[CMake " .. profile_name .. "] Build All",
             type = "build",
@@ -270,7 +268,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
                 table.insert(cmd, "--")
                 vim.list_extend(cmd, strtools.cmd_to_string_array(cfg.build_tool_args))
             end
-            ---@type loop.Task
+            ---@type loop.taskTemplate[]
             local task = {
                 name = build_task_name(tgt, tgt_type),
                 type = "build",
@@ -291,7 +289,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             local exec_path = vim.fs.joinpath(build_dir, tgt)
             local cmd = { exec_path }
             local cwd = build_dir
-            ---@type loop.Task
+            ---@type loop.taskTemplate[]
             local task =
             {
                 name = name,
@@ -313,7 +311,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
         end
         for _, t in ipairs(tests) do
             if t.name and t.command then
-                ---@type loop.Task
+                ---@type loop.taskTemplate[]
                 local task = {
                     name    = "CMake [" .. profile_name .. "] CTest: " .. t.name,
                     type    = "build",
@@ -325,7 +323,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
         end
         do
             -- Add a meta-task to run all tests
-            ---@type loop.Task
+            ---@type loop.taskTemplate[]
             local all_tests_task = {
                 name    = "[CMake " .. profile_name .. "] CTest All",
                 type    = "build",
@@ -336,7 +334,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
         end
         do
             -- Add a meta-task to run all tests
-            ---@type loop.Task
+            ---@type loop.taskTemplate[]
             local all_tests_task = {
                 name    = "[CMake " .. profile_name .. "] CTest Rerun Failed",
                 type    = "build",

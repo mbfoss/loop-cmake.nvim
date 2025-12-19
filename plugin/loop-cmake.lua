@@ -1,0 +1,1 @@
+require('loop.task.providers').register("cmake", "loop-cmake")

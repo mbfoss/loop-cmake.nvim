@@ -1,6 +1,5 @@
 local M = {}
 
-require('loop.task.taskdef')
 local generator = require('loop-cmake.generator')
 local strtools = require('loop.tools.strtools')
 local filetools = require('loop.tools.file')
@@ -59,17 +58,15 @@ function M.get_config_template()
     return require('loop-cmake.configtemplate')
 end
 
----@return fun(path: string, attrs: string[]) : string[]
-function M.get_config_order_handler()
-    return function(_, _)
-        return { "$schema", "name", "config", "cmake_path", "ctest_path",
-            "build_type", "source_dir", "build_dir", "configure_args", "build_tool_args", "quickfix_matcher" }
-    end
+---@return string[]
+function M.get_config_order(path)
+    return { "$schema", "name", "config", "cmake_path", "ctest_path",
+        "build_type", "source_dir", "build_dir", "configure_args", "build_tool_args", "quickfix_matcher" }
 end
 
 ---@param config CMakeConfig
 ---@param ingore_configured boolean
----@return loop.Task[]|nil,string[]|nil
+---@return loop-cmake.Task[]|nil,string[]|nil
 local function _get_configure_tasks(config, ingore_configured)
     _init_cmake_api(config)
     local tasks = {}
@@ -85,7 +82,7 @@ local function _get_configure_tasks(config, ingore_configured)
                 local cmd = { config.cmake_path }
                 vim.list_extend(cmd, strtools.cmd_to_string_array(prof.configure_args))
                 vim.list_extend(cmd, { "-B", build_dir, "-S", src_root, "-DCMAKE_BUILD_TYPE=" .. build_type })
-                ---@type loop.Task
+                ---@type loop.taskTemplate[]
                 local task = {
                     name = "[CMake " .. profile_name .. "] Configure",
                     type = "build",
@@ -104,28 +101,41 @@ end
 -- Public API
 -- ----------------------------------------------------------------------
 ---@param config CMakeConfig
----@return loop.Task[]|nil,string[]|nil
+---@return loop.taskTemplate[]
 function M.get_tasks(config)
     local params_ok, params_errors = _check_params(config)
     if not params_ok then
-        return nil, strtools.indent_errors(params_errors, "Invalid cmake config")
+        if params_errors then vim.notify(table.concat(params_errors, '\n')) end
+        return {}
     end
     _init_cmake_api(config)
-    local tasks, configure_tasks_errs = _get_configure_tasks(config, false)
+    local tasks, errors = _get_configure_tasks(config, false)
     if not tasks then
-        return nil, configure_tasks_errs
+        if errors then vim.notify(table.concat(errors, '\n')) end
+        return {}
+    end
+    local templates = {}
+    for _,task in ipairs(tasks) do
+        table.insert(templates, {
+            name = task.name,
+            task = task
+        })
     end
     if #tasks > 1 then
-        ---@type loop.Task
-        local task = {
+        ---@type loop.taskTemplate[]
+        local tmpl =
+        {
             name = "Configure All",
-            type = "composite",
-            depends_on = {}
+            task = {
+                name = "Configure All",
+                type = "composite",
+                depends_on = {}
+            }
         }
         for _, t in ipairs(tasks) do
-            table.insert(task.depends_on, t.name)
+            table.insert(tmpl.task.depends_on, t.name)
         end
-        table.insert(tasks, 1, task)
+        table.insert(templates, 1, tmpl)
     end
 
     local all_errors = {}
@@ -137,7 +147,10 @@ function M.get_tasks(config)
         end
     end
 
-    return tasks, #all_errors > 0 and all_errors or nil
+    if all_errors and #all_errors > 0 then
+        vim.notify(table.concat(all_errors, '\n'))
+    end
+    return templates
 end
 
 return M

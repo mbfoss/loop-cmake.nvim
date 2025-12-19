@@ -1,1 +1,0 @@
-require('loop.task.ext').register("cmake", "loop-cmake")
