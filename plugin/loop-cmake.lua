@@ -1,1 +1,1 @@
-require('loop.task.providers').register("cmake", "loop-cmake")
+require('loop.ext').register_task_provider("cmake", "loop-cmake")
