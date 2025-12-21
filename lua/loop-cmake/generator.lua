@@ -313,7 +313,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             if t.name and t.command then
                 ---@type loop.taskTemplate[]
                 local task = {
-                    name    = "CMake [" .. profile_name .. "] CTest: " .. t.name,
+                    name    = "[CMake " .. profile_name .. "] CTest: " .. t.name,
                     type    = "build",
                     command = t.command,
                     cwd     = build_dir

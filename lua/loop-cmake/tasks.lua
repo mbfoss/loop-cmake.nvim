@@ -114,28 +114,17 @@ function M.get_tasks(config)
         if errors then vim.notify(table.concat(errors, '\n')) end
         return {}
     end
-    local templates = {}
-    for _,task in ipairs(tasks) do
-        table.insert(templates, {
-            name = task.name,
-            task = task
-        })
-    end
     if #tasks > 1 then
-        ---@type loop.taskTemplate[]
-        local tmpl =
-        {
+        ---@type loop.Task
+        local task = {
             name = "Configure All",
-            task = {
-                name = "Configure All",
-                type = "composite",
-                depends_on = {}
-            }
+            type = "composite",
+            depends_on = {},
         }
         for _, t in ipairs(tasks) do
-            table.insert(tmpl.task.depends_on, t.name)
+            table.insert(task.depends_on, t.name)
         end
-        table.insert(templates, 1, tmpl)
+        table.insert(tasks, 1, task)
     end
 
     local all_errors = {}
@@ -149,6 +138,13 @@ function M.get_tasks(config)
 
     if all_errors and #all_errors > 0 then
         vim.notify(table.concat(all_errors, '\n'))
+    end
+    local templates = {}
+    for _, task in ipairs(tasks) do
+        table.insert(templates, {
+            name = task.name,
+            task = task
+        })
     end
     return templates
 end
