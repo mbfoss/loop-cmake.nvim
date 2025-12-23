@@ -13,7 +13,7 @@ function M.start_app(task, page_manager, on_exit)
         name = task.name or "Unnamed Tool Task",
         command = task.command,
         env = task.env,
-        cwd = task.cwd or projinfo.proj_dir,
+        cwd = task.cwd or wsinfo.ws_dir,
         output_handler = nil,
         on_exit_handler = function(code)
             if code == 0 then
