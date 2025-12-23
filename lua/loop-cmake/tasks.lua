@@ -58,12 +58,6 @@ function M.get_config_template()
     return require('loop-cmake.configtemplate')
 end
 
----@return string[]
-function M.get_config_order(path)
-    return { "$schema", "name", "config", "cmake_path", "ctest_path",
-        "build_type", "source_dir", "build_dir", "configure_args", "build_tool_args", "quickfix_matcher" }
-end
-
 ---@param config CMakeConfig
 ---@param ingore_configured boolean
 ---@return loop-cmake.Task[]|nil,string[]|nil
