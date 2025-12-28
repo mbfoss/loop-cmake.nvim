@@ -73,12 +73,14 @@ local function _get_configure_tasks(config, ingore_configured)
         local cmakecache_path = vim.fs.joinpath(build_dir, "CMakeCache.txt")
         if not (ingore_configured and filetools.file_exists(cmakecache_path)) then
             do
+                local name = ("Configure (%s)"):format(profile_name)
                 local cmd = { config.cmake_path }
                 vim.list_extend(cmd, strtools.cmd_to_string_array(prof.configure_args))
                 vim.list_extend(cmd, { "-B", build_dir, "-S", src_root, "-DCMAKE_BUILD_TYPE=" .. build_type })
                 ---@type loop.taskTemplate[]
                 local task = {
-                    name = "[CMake " .. profile_name .. "] Configure",
+                    __order = { "name", "type", "command", "cwd" },
+                    name = name,
                     type = "build",
                     command = cmd,
                     cwd = src_root
@@ -111,6 +113,7 @@ function M.get_tasks(config)
     if #tasks > 1 then
         ---@type loop.Task
         local task = {
+            __order = { "name", "type", "depends_on" },
             name = "Configure All",
             type = "composite",
             depends_on = {},

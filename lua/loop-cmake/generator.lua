@@ -237,9 +237,11 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             table.insert(cmd, "--")
             vim.list_extend(cmd, strtools.cmd_to_string_array(cfg.build_tool_args))
         end
+        local name = ("Build all (%s)"):format(profile_name)
         ---@type loop.taskTemplate[]
         local task = {
-            name = "[CMake " .. profile_name .. "] Build All",
+            __order = { "name", "type", "command", "cwd", "quickfix_matcher" },
+            name = name,
             type = "build",
             command = cmd,
             cwd = src_root,
@@ -249,13 +251,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
     end
 
     local function build_task_name(tgt, tgt_type)
-        local name = "[CMake " .. profile_name .. "] Build "
-        if tgt_type ~= "UTILITY" then
-            name = name .. strtools.human_case(tgt_type)
-        else
-            name = name .. 'Target'
-        end
-        return name .. ': ' .. tgt
+        return ("Build: %s (%s)"):format(tgt, profile_name)
     end
 
     -- ------------------------------------------------------------------
@@ -270,6 +266,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             end
             ---@type loop.taskTemplate[]
             local task = {
+                __order = { "name", "type", "command", "cwd", "quickfix_matcher" },
                 name = build_task_name(tgt, tgt_type),
                 type = "build",
                 command = cmd,
@@ -285,13 +282,14 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
     for tgt, tgt_type in pairs(all_targets) do
         -- Only keep *real* executables (skip UTILITY, INTERFACE, etc.)
         if tgt_type == "EXECUTABLE" or tgt_type == "MACOSX_BUNDLE" then
-            local name = "[CMake " .. profile_name .. "] Run: " .. tgt
+            local name = ("Run: %s (%s)"):format(tgt, profile_name)
             local exec_path = vim.fs.joinpath(build_dir, tgt)
             local cmd = { exec_path }
             local cwd = build_dir
             ---@type loop.taskTemplate[]
             local task =
             {
+                __order = { "name", "type", "command", "cwd", "depends_on" },
                 name = name,
                 type = "run",
                 command = cmd,
@@ -311,9 +309,11 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
         end
         for _, t in ipairs(tests) do
             if t.name and t.command then
+                local name = ("CTest: %s (%s)"):format(t.name, profile_name)
                 ---@type loop.taskTemplate[]
                 local task = {
-                    name    = "[CMake " .. profile_name .. "] CTest: " .. t.name,
+                    __order = { "name", "type", "command", "cwd", "depends_on" },
+                    name    = name,
                     type    = "build",
                     command = t.command,
                     cwd     = build_dir
@@ -322,26 +322,29 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             end
         end
         do
+            local name = ("CTest all (%s)"):format(profile_name)
             -- Add a meta-task to run all tests
             ---@type loop.taskTemplate[]
-            local all_tests_task = {
-                name    = "[CMake " .. profile_name .. "] CTest All",
+            local task = {
+                name    = name,
                 type    = "build",
                 command = { "ctest", "--output-on-failure" },
                 cwd     = build_dir
             }
-            table.insert(tasks, all_tests_task)
+            table.insert(tasks, task)
         end
         do
-            -- Add a meta-task to run all tests
+            local name = ("CTest rerun failed (%s)"):format(profile_name)
+            -- Add a meta-task to run failed tests
             ---@type loop.taskTemplate[]
-            local all_tests_task = {
-                name    = "[CMake " .. profile_name .. "] CTest Rerun Failed",
+            local task = {
+                __order = { "name", "type", "command", "cwd" },
+                name    = name,
                 type    = "build",
                 command = { "ctest", "--rerun-failed", "--output-on-failure" },
                 cwd     = build_dir
             }
-            table.insert(tasks, all_tests_task)
+            table.insert(tasks, task)
         end
     end
     return true
