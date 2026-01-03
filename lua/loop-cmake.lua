@@ -1,5 +1,3 @@
-local run = require('loop-cmake.run')
-
 ---@type loop.TaskProvider
 local provider = {
     get_config_schema = function()
@@ -14,7 +12,7 @@ local provider = {
         local schema = require('loop-cmake.taskschema')
         return schema
     end,
-    get_config_order = function ()
+    get_config_order = function()
         local tasks = require('loop-cmake.tasks')
         return tasks.get_config_order()
     end,
@@ -23,7 +21,8 @@ local provider = {
         local tasks = require('loop-cmake.tasks')
         return tasks.get_tasks(config)
     end,
-    start_one_task = run.start_build
+    start_one_task = function(task, page_manager, on_exit)
+    end
 }
 
 return provider
