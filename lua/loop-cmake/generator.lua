@@ -82,7 +82,7 @@ end
 local function query_cmake_api_targets(build_dir)
     local reply_dir = vim.fs.joinpath(build_dir, ".cmake", "api", "v1", "reply")
     if not filetools.dir_exists(reply_dir) then
-        return nil, { "API reply directory missing - Run configure first" }
+        return nil, { "Target list not available - Run configure first" }
     end
 
     ------------------------------------------------------------------
