@@ -105,25 +105,8 @@ function M.get_tasks(config)
         return {}
     end
     _init_cmake_api(config)
-    local tasks, errors = _get_configure_tasks(config, false)
-    if not tasks then
-        if errors then vim.notify(table.concat(errors, '\n')) end
-        return {}
-    end
-    if #tasks > 1 then
-        ---@type loop.Task
-        local task = {
-            __order = { "name", "type", "depends_on" },
-            name = "Configure All",
-            type = "composite",
-            depends_on = {},
-        }
-        for _, t in ipairs(tasks) do
-            table.insert(task.depends_on, t.name)
-        end
-        table.insert(tasks, 1, task)
-    end
 
+    local tasks = {}
     local all_errors = {}
     for _, prof in ipairs(config.profiles or {}) do
         local _, prof_errs = generator.get_profile_tasks(tasks, config.cmake_path, config.ctest_path, prof)
@@ -144,6 +127,36 @@ function M.get_tasks(config)
         })
     end
     return templates
+end
+
+---@param config CMakeConfig
+---@return loop-cmake.Task[]|nil,string|nil
+function M.get_configure_tasks(config)
+    local tasks, errors = _get_configure_tasks(config, false)
+    if not tasks then
+        if errors then
+            return nil, table.concat(errors, '\n')
+        end
+        return nil, nil
+    end
+
+    if #tasks == 0 then return tasks, nil end
+    if #tasks == 1 then return tasks, tasks[1].name end
+    
+    local root_name = "Configure All"
+    ---@type loop.Task
+    local task = {
+        __order = { "name", "type", "depends_on" },
+        name = root_name,
+        type = "composite",
+        depends_on = {},
+    }
+    for _, t in ipairs(tasks) do
+        table.insert(task.depends_on, t.name)
+    end
+    table.insert(tasks, 1, task)
+
+    return tasks, root_name
 end
 
 return M
