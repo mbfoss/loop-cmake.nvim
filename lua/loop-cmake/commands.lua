@@ -11,14 +11,24 @@ function M.get_subcommands(args)
 end
 
 ---@param args string[]
-function M.do_command(args)
+---@param ext_config loop.ExtensionConfig
+function M.do_command(args, ext_config)
     if #args == 0 then return end
     if args[1] == "setup_profiles" then
-        vim.notify("Not implemented")
+        local template = require('loop-cmake.configtemplate')
+        local schema = require('loop-cmake.configschema')
+        ext_config.init_config_file(template, schema)
         return
     end
     if args[1] == "configure" then
-        local task_list, root_or_err = tasks.get_configure_tasks()
+        if not ext_config.have_config_file() then
+            vim.notify("Cmake not configured, run :Loop cmake setup_profiles")
+            return {}
+        end
+        local schema = require('loop-cmake.configschema')
+        local config = ext_config.load_config_file(schema)
+        ---@cast config CMakeConfig
+        local task_list, root_or_err = tasks.get_configure_tasks(config)
         if not task_list or not root_or_err then
             vim.notify(root_or_err or "Failed to build configure tasks")
         else
