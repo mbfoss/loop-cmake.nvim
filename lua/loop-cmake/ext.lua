@@ -103,11 +103,9 @@ local function _make_task_provider(ext_data)
             return schema
         end,
         get_config_order = function()
-            local tasks = require('loop-cmake.tasks')
             return tasks.get_config_order()
         end,
         get_task_templates = function()
-            local tasks = require('loop-cmake.tasks')
             if not ext_data.config.have_config_file() then
                 vim.notify("Cmake not configured, run :Loop cmake setup_profiles")
                 return {}
