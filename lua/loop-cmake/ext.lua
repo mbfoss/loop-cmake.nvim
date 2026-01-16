@@ -95,16 +95,9 @@ local function _make_cmd_provider(ext_data)
 end
 
 ---@param ext_data loop.ExtensionData
-local function _make_task_provider(ext_data)
-    ---@type loop.TaskProvider
+local function _make_template_provider(ext_data)
+    ---@type loop.TaskTemplateProvider
     return {
-        get_task_schema = function()
-            local schema = require('loop-cmake.taskschema')
-            return schema
-        end,
-        get_config_order = function()
-            return tasks.get_config_order()
-        end,
         get_task_templates = function()
             if not ext_data.config.have_config_file() then
                 vim.notify("Cmake not configured, run :Loop cmake setup_profiles")
@@ -120,8 +113,6 @@ local function _make_task_provider(ext_data)
             ---@cast config CMakeConfig
             return tasks.get_tasks(config)
         end,
-        start_one_task = function(task, page_manager, on_exit)
-        end
     }
 end
 
@@ -129,8 +120,8 @@ end
 local extension =
 {
     on_workspace_load = function(ext_data)
-        ext_data.register_cmd_provider("cmake", _make_cmd_provider(ext_data))
-        ext_data.register_task_provider("cmake", _make_task_provider(ext_data))
+        ext_data.register_user_command("cmake", _make_cmd_provider(ext_data))
+        ext_data.register_task_templates("cmake", _make_template_provider(ext_data))
     end,
     on_workspace_unload = function(ext_data)
 
