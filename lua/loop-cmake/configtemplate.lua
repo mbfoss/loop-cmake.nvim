@@ -2,7 +2,7 @@ local profile_order = { "name", "build_type", "source_dir", "build_dir", "config
     "quickfix_matcher" }
 return {
     __order = { "cmake_path", "ctest_path" },
-    cmake_path = "cmake",
+    cmake_path = "Cmake",
     ctest_path = "ctest",
     profiles = {
         {

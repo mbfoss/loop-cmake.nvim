@@ -121,7 +121,7 @@ local extension =
 {
     on_workspace_load = function(ext_data)
         ext_data.register_user_command("cmake", _make_cmd_provider(ext_data))
-        ext_data.register_task_templates("cmake", _make_template_provider(ext_data))
+        ext_data.register_task_templates("CMake", _make_template_provider(ext_data))
     end,
     on_workspace_unload = function(ext_data)
 
