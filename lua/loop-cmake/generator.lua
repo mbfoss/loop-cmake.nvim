@@ -242,7 +242,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
         local task = {
             __order = { "name", "type", "command", "cwd", "quickfix_matcher" },
             name = name,
-            type = "build",
+            type = "command",
             command = cmd,
             cwd = src_root,
             quickfix_matcher = quickfix_matcher,
@@ -268,7 +268,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             local task = {
                 __order = { "name", "type", "command", "cwd", "quickfix_matcher" },
                 name = build_task_name(tgt, tgt_type),
-                type = "build",
+                type = "command",
                 command = cmd,
                 cwd = src_root,
                 quickfix_matcher = quickfix_matcher
@@ -291,7 +291,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             {
                 __order = { "name", "type", "command", "cwd", "depends_on" },
                 name = name,
-                type = "run",
+                type = "command",
                 command = cmd,
                 cwd = cwd,
                 depends_on = { build_task_name(tgt, tgt_type) }
@@ -314,7 +314,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
                 local task = {
                     __order = { "name", "type", "command", "cwd", "depends_on" },
                     name    = name,
-                    type    = "build",
+                    type    = "command",
                     command = t.command,
                     cwd     = build_dir
                 }
@@ -327,7 +327,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             ---@type loop.taskTemplate[]
             local task = {
                 name    = name,
-                type    = "build",
+                type    = "command",
                 command = { "ctest", "--output-on-failure" },
                 cwd     = build_dir
             }
@@ -340,7 +340,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             local task = {
                 __order = { "name", "type", "command", "cwd" },
                 name    = name,
-                type    = "build",
+                type    = "command",
                 command = { "ctest", "--rerun-failed", "--output-on-failure" },
                 cwd     = build_dir
             }

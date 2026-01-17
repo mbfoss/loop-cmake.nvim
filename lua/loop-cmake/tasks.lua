@@ -81,7 +81,7 @@ local function _get_configure_tasks(config, ingore_configured)
 				local task = {
 					__order = { "name", "type", "command", "cwd" },
 					name = name,
-					type = "build",
+					type = "command",
 					command = cmd,
 					cwd = src_root
 				}
