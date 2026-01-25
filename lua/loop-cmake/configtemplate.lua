@@ -1,12 +1,8 @@
-local profile_order = { "name", "build_type", "source_dir", "build_dir", "configure_args", "build_tool_args",
-    "quickfix_matcher" }
 return {
-    __order = { "cmake_path", "ctest_path" },
     cmake_path = "Cmake",
     ctest_path = "ctest",
     profiles = {
         {
-            __order = profile_order,
             name = "Debug",
             build_type = "Debug",
             source_dir = "${wsdir}",
@@ -16,7 +12,6 @@ return {
             quickfix_matcher = "gcc"
         },
         {
-            __order = profile_order,
             name = "Release",
             build_type = "Release",
             source_dir = "${wsdir}",

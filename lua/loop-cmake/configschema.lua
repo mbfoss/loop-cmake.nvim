@@ -2,8 +2,10 @@ return {
     ["$schema"] = "http://json-schema.org/draft-07/schema#",
     type = "object",
     required = { "cmake_path", "profiles" },
+    ["x-order"] = { "cmake_path", "ctest_path", "profiles" },
     additionalProperties = false,
     properties = {
+        ["$schema"] = {},
         cmake_path = {
             type = "string",
             pattern = "^.+$"
@@ -15,6 +17,20 @@ return {
             type = "array",
             items = {
                 type = "object",
+                required = {
+                    "name",
+                    "build_type",
+                    "source_dir",
+                    "build_dir",
+                    "quickfix_matcher"
+                },
+                ["x-order"] = {
+                    "name",
+                    "build_type",
+                    "source_dir",
+                    "build_dir",
+                    "configure_args",
+                    "build_tool_args" },
                 additionalProperties = false,
                 properties = {
                     name = {
@@ -55,13 +71,6 @@ return {
                         type = "string",
                         description = "Matcher used to fill the quickfix list"
                     }
-                },
-                required = {
-                    "name",
-                    "build_type",
-                    "source_dir",
-                    "build_dir",
-                    "quickfix_matcher"
                 },
             }
         }

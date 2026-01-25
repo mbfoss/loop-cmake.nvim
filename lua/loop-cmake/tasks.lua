@@ -79,9 +79,8 @@ local function _get_configure_tasks(config, ingore_configured)
 				vim.list_extend(cmd, { "-B", build_dir, "-S", src_root, "-DCMAKE_BUILD_TYPE=" .. build_type })
 				---@type loop.taskTemplate[]
 				local task = {
-					__order = { "name", "type", "command", "cwd" },
 					name = name,
-					type = "command",
+					type = "process",
 					command = cmd,
 					cwd = src_root
 				}
@@ -146,7 +145,6 @@ function M.get_configure_tasks(config)
 	local root_name = "Configure All"
 	---@type loop.Task
 	local task = {
-		__order = { "name", "type", "depends_on" },
 		name = root_name,
 		type = "composite",
 		depends_on = {},

@@ -240,9 +240,8 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
         local name = ("Build all (%s)"):format(profile_name)
         ---@type loop.taskTemplate[]
         local task = {
-            __order = { "name", "type", "command", "cwd", "quickfix_matcher" },
             name = name,
-            type = "command",
+            type = "process",
             command = cmd,
             cwd = src_root,
             quickfix_matcher = quickfix_matcher,
@@ -266,9 +265,8 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             end
             ---@type loop.taskTemplate[]
             local task = {
-                __order = { "name", "type", "command", "cwd", "quickfix_matcher" },
                 name = build_task_name(tgt, tgt_type),
-                type = "command",
+                type = "process",
                 command = cmd,
                 cwd = src_root,
                 quickfix_matcher = quickfix_matcher
@@ -289,9 +287,8 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             ---@type loop.taskTemplate[]
             local task =
             {
-                __order = { "name", "type", "command", "cwd", "depends_on" },
                 name = name,
-                type = "command",
+                type = "process",
                 command = cmd,
                 cwd = cwd,
                 depends_on = { build_task_name(tgt, tgt_type) }
@@ -312,9 +309,8 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
                 local name = ("CTest: %s (%s)"):format(t.name, profile_name)
                 ---@type loop.taskTemplate[]
                 local task = {
-                    __order = { "name", "type", "command", "cwd", "depends_on" },
                     name    = name,
-                    type    = "command",
+                    type    = "process",
                     command = t.command,
                     cwd     = build_dir
                 }
@@ -327,7 +323,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             ---@type loop.taskTemplate[]
             local task = {
                 name    = name,
-                type    = "command",
+                type    = "process",
                 command = { "ctest", "--output-on-failure" },
                 cwd     = build_dir
             }
@@ -338,9 +334,8 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             -- Add a meta-task to run failed tests
             ---@type loop.taskTemplate[]
             local task = {
-                __order = { "name", "type", "command", "cwd" },
                 name    = name,
-                type    = "command",
+                type    = "process",
                 command = { "ctest", "--rerun-failed", "--output-on-failure" },
                 cwd     = build_dir
             }

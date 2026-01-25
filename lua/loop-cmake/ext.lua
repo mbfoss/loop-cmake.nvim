@@ -1,4 +1,9 @@
 local workspace = require('loop.workspace')
+local filetools = require('loop.tools.file')
+local jsoncodec = require('loop.json.codec')
+local jsonvalidator = require('loop.json.validator')
+local JsonEditor = require('loop.json.JsonEditor')
+
 local tasks = require('loop-cmake.tasks')
 
 ---@private
@@ -47,36 +52,79 @@ local function _get_subcommands(args)
     return {}
 end
 
+---@param ext_data loop.ExtensionData
+local function _setup_profiles(ext_data)
+    local schema = require('loop-cmake.configschema')
+
+    local filepath = ext_data.get_config_file_path("profiles")
+    local schema_filepath = ext_data.get_config_file_path("profilesschema")
+    if not filetools.file_exists(filepath) then
+        if not filetools.file_exists(schema_filepath) then
+            jsoncodec.save_to_file(schema_filepath, schema)
+        end
+        local data = vim.fn.deepcopy(require('loop-cmake.configtemplate'))
+        data["$schema"] = "./" .. vim.fn.fnamemodify(schema_filepath, ":t")
+        jsoncodec.save_to_file(filepath, data)
+    end
+
+    local editor = JsonEditor:new({
+        name = "CMake profiles configuration",
+        filepath = filepath,
+        schema = schema,
+    })
+
+    editor:open()
+    editor:save()
+end
+
+---@param ext_data loop.ExtensionData
+local function _load_ext_config(ext_data)
+    local filepath = ext_data.get_config_file_path("profiles")
+    local schema = require('loop-cmake.configschema')
+    if not filetools.file_exists(filepath) then
+        vim.notify("Cmake profiles not configured, run :Loop cmake setup_profiles")
+        return
+    end
+    local loaded, config_or_err = jsoncodec.load_from_file(filepath)
+    if not loaded then
+        vim.notify("Failed to load profiles configuration\n" .. config_or_err)
+        return
+    end
+    local config = config_or_err
+    local validation_errors = jsonvalidator.validate(schema, config)
+    if validation_errors then
+        vim.notify("Failed to load profiles configuration\n" .. jsonvalidator.errors_to_string(validation_errors))
+        return
+    end
+    replace_wsdir_recursive(config, ext_data.ws_dir)
+    return config
+end
+
+---@param ext_data loop.ExtensionData
+local function _cmake_configure(ext_data)
+    local config = _load_ext_config(ext_data)
+    if not config then return end
+    ---@cast config CMakeConfig
+    local task_list, root_or_err = tasks.get_configure_tasks(config)
+    if not task_list or not root_or_err then
+        vim.notify(root_or_err or "Failed to build configure tasks")
+    else
+        local root_name = root_or_err
+        workspace.run_custom_task(task_list, root_name)
+    end
+end
+
+
 ---@param args string[]
 ---@param ext_data loop.ExtensionData
 local function _do_command(args, ext_data)
     if #args == 0 then return end
     if args[1] == "setup_profiles" then
-        local template = require('loop-cmake.configtemplate')
-        local schema = require('loop-cmake.configschema')
-        ext_data.config.init_config_file(template, schema)
+        _setup_profiles(ext_data)
         return
     end
     if args[1] == "configure" then
-        if not ext_data.config.have_config_file() then
-            vim.notify("Cmake profiles not configured, run :Loop cmake setup_profiles")
-            return {}
-        end
-        local schema = require('loop-cmake.configschema')
-        local config = ext_data.config.load_config_file(schema)
-        if not config then
-            vim.notify("Cmake profiles configuration missing, run :Loop cmake setup_profiles")
-            return {}
-        end
-        replace_wsdir_recursive(config, ext_data.ws_dir)
-        ---@cast config CMakeConfig
-        local task_list, root_or_err = tasks.get_configure_tasks(config)
-        if not task_list or not root_or_err then
-            vim.notify(root_or_err or "Failed to build configure tasks")
-        else
-            local root_name = root_or_err
-            workspace.run_custom_task(task_list, root_name)
-        end
+        _cmake_configure(ext_data)
         return
     end
 end
@@ -99,17 +147,8 @@ local function _make_template_provider(ext_data)
     ---@type loop.TaskTemplateProvider
     return {
         get_task_templates = function()
-            if not ext_data.config.have_config_file() then
-                vim.notify("Cmake not configured, run :Loop cmake setup_profiles")
-                return {}
-            end
-            local schema = require('loop-cmake.configschema')
-            local config = ext_data.config.load_config_file(schema)
-            if not config then
-                vim.notify("Cmake configuration missing, run :Loop cmake setup_profiles")
-                return {}
-            end
-            replace_wsdir_recursive(config, ext_data.ws_dir)
+            local config = _load_ext_config(ext_data)
+            if not config then return {} end
             ---@cast config CMakeConfig
             return tasks.get_tasks(config)
         end,
