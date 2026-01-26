@@ -1,5 +1,5 @@
 return {
-    cmake_path = "Cmake",
+    cmake_path = "cmake",
     ctest_path = "ctest",
     profiles = {
         {
