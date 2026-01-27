@@ -163,7 +163,6 @@ local extension =
         ext_data.register_task_templates("CMake", _make_template_provider(ext_data))
     end,
     on_workspace_unload = function(ext_data)
-
     end,
 }
 
