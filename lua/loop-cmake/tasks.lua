@@ -63,8 +63,12 @@ end
 ---@return loop-cmake.Task[]|nil,string[]|nil
 local function _get_configure_tasks(config, ingore_configured)
 	_init_cmake_api(config)
+	local profiles = config.profiles or {}
+	if #profiles == 0 then
+		return nil, {"No configured CMake profiles"}
+	end
 	local tasks = {}
-	for _, prof in ipairs(config.profiles or {}) do
+	for _, prof in ipairs(profiles) do
 		local build_type = prof.build_type
 
 		local profile_name = prof.name
