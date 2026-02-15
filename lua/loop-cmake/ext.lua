@@ -1,5 +1,5 @@
-local workspace = require('loop.workspace')
 local filetools = require('loop.tools.file')
+local logs = require('loop.logs')
 local jsoncodec = require('loop.json.codec')
 local jsonvalidator = require('loop.json.validator')
 local JsonEditor = require('loop.json.JsonEditor')
@@ -105,13 +105,46 @@ local function _cmake_configure(ext_data)
     local config = _load_ext_config(ext_data)
     if not config then return end
     ---@cast config CMakeConfig
-    local task_list, root_or_err = tasks.get_configure_tasks(config)
-    if not task_list or not root_or_err then
-        vim.notify(root_or_err or "Failed to build configure tasks")
-    else
-        local root_name = root_or_err
-        workspace.run_custom_task(task_list, root_name)
+    local task_list, error_msg = tasks.get_configure_tasks(config)
+    if not task_list then
+        vim.notify("Failed to build cmake configure tasks")
+        if error_msg then
+            logs.log({ "failed to build cmake configure tasks", error_msg }, vim.log.levels.ERROR)
+        end
+        return
     end
+    local page_group = ext_data.request_page_proup("CMake configure")
+    if not page_group then return end
+    page_group.delete_pages()
+    local function next_task()
+        if #task_list > 0 then
+            ---@type  loop-cmake.Task
+            local task = task_list[1]
+            logs.log({ "running cmake configure command", vim.inspect({
+                name = task.name,
+                command = task.command,
+                cwd = task.cwd,
+                env = task.env,
+            }) })
+            table.remove(task_list, 1)
+            page_group.add_page({
+                label = task.name,
+                type = "term",
+                activate = true,
+                term_args = {
+                    name = task.name,
+                    command = task.command,
+                    cwd = task.cwd,
+                    env = task.env,
+                    on_exit_handler = function(code)
+                        next_task()
+                    end
+                }
+
+            })
+        end
+    end
+    next_task()
 end
 
 

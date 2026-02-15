@@ -77,14 +77,13 @@ local function _get_configure_tasks(config, ingore_configured)
 		local cmakecache_path = vim.fs.joinpath(build_dir, "CMakeCache.txt")
 		if not (ingore_configured and filetools.file_exists(cmakecache_path)) then
 			do
-				local name = ("Configure (%s)"):format(profile_name)
 				local cmd = { config.cmake_path }
 				vim.list_extend(cmd, strtools.cmd_to_string_array(prof.configure_args))
 				vim.list_extend(cmd, { "-B", build_dir, "-S", src_root, "-DCMAKE_BUILD_TYPE=" .. build_type })
 				---@type loop.taskTemplate[]
 				local task = {
-					name = name,
-					type = "process",
+					name = profile_name,
+					type = "build",
 					command = cmd,
 					cwd = src_root
 				}
@@ -140,25 +139,9 @@ function M.get_configure_tasks(config)
 		if errors then
 			return nil, table.concat(errors, '\n')
 		end
-		return nil, nil
+		return nil, "Unknown error"
 	end
-
-	if #tasks == 0 then return tasks, nil end
-	if #tasks == 1 then return tasks, tasks[1].name end
-
-	local root_name = "Configure All"
-	---@type loop.Task
-	local task = {
-		name = root_name,
-		type = "composite",
-		depends_on = {},
-	}
-	for _, t in ipairs(tasks) do
-		table.insert(task.depends_on, t.name)
-	end
-	table.insert(tasks, 1, task)
-
-	return tasks, root_name
+	return tasks, nil
 end
 
 return M

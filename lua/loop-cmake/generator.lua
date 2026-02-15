@@ -241,7 +241,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
         ---@type loop.taskTemplate[]
         local task = {
             name = name,
-            type = "process",
+            type = "build",
             command = cmd,
             cwd = src_root,
             quickfix_matcher = quickfix_matcher,
@@ -266,7 +266,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             ---@type loop.taskTemplate[]
             local task = {
                 name = build_task_name(tgt, tgt_type),
-                type = "process",
+                type = "build",
                 command = cmd,
                 cwd = src_root,
                 quickfix_matcher = quickfix_matcher
@@ -288,7 +288,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             local task =
             {
                 name = name,
-                type = "process",
+                type = "build",
                 command = cmd,
                 cwd = cwd,
                 depends_on = { build_task_name(tgt, tgt_type) }
@@ -310,7 +310,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
                 ---@type loop.taskTemplate[]
                 local task = {
                     name    = name,
-                    type    = "process",
+                    type    = "build",
                     command = t.command,
                     cwd     = build_dir
                 }
@@ -323,7 +323,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             ---@type loop.taskTemplate[]
             local task = {
                 name    = name,
-                type    = "process",
+                type    = "build",
                 command = { "ctest", "--output-on-failure" },
                 cwd     = build_dir
             }
@@ -335,7 +335,7 @@ function M.get_profile_tasks(tasks, cmake_path, ctest_path, cfg)
             ---@type loop.taskTemplate[]
             local task = {
                 name    = name,
-                type    = "process",
+                type    = "build",
                 command = { "ctest", "--rerun-failed", "--output-on-failure" },
                 cwd     = build_dir
             }
