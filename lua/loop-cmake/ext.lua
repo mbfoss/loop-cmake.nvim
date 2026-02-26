@@ -91,8 +91,8 @@ local function _load_ext_config(ext_data)
         return
     end
     local config = config_or_err
-    local validation_errors = jsonvalidator.validate(schema, config)
-    if validation_errors then
+    local valid, validation_errors = jsonvalidator.validate(schema, config)
+    if not valid then
         vim.notify("Failed to load profiles configuration\n" .. jsonvalidator.errors_to_string(validation_errors))
         return
     end
