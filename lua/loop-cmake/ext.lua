@@ -47,7 +47,7 @@ end
 
 local function _get_subcommands(args)
     if #args == 0 then
-        return { "setup_profiles", "configure" }
+        return { "setup", "configure" }
     end
     return {}
 end
@@ -68,7 +68,7 @@ local function _setup_profiles(ext_data)
     end
 
     local editor = JsonEditor:new({
-        name = "CMake profiles configuration",
+        name = "CMake settings",
         filepath = filepath,
         schema = schema,
     })
@@ -82,7 +82,7 @@ local function _load_ext_config(ext_data)
     local filepath = ext_data.get_config_file_path("profiles")
     local schema = require('loop-cmake.configschema')
     if not filetools.file_exists(filepath) then
-        vim.notify("Cmake profiles not configured, run :Loop cmake setup_profiles")
+        vim.notify("Cmake profiles not configured, run :Loop cmake setup")
         return
     end
     local loaded, config_or_err = jsoncodec.load_from_file(filepath)
@@ -91,8 +91,8 @@ local function _load_ext_config(ext_data)
         return
     end
     local config = config_or_err
-    local validation_errors = jsonvalidator.validate(schema, config)
-    if validation_errors then
+    local valid, validation_errors = jsonvalidator.validate(schema, config)
+    if not valid then
         vim.notify("Failed to load profiles configuration\n" .. jsonvalidator.errors_to_string(validation_errors))
         return
     end
@@ -159,7 +159,7 @@ end
 ---@param ext_data loop.ExtensionData
 local function _do_command(args, ext_data)
     if #args == 0 then return end
-    if args[1] == "setup_profiles" then
+    if args[1] == "setup" then
         _setup_profiles(ext_data)
         return
     end

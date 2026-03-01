@@ -197,7 +197,7 @@ local function query_cmake_api_tests(ctest_path, build_dir)
     end
 
     if not data.tests or not next(data.tests) then
-        return nil, "No tests found in CTest JSON"
+        return {}, "No tests found in CTest JSON"
     end
 
     return data.tests, nil
