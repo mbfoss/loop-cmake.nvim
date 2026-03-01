@@ -1,82 +1,111 @@
-<p align="center">
-  <strong>CMake task provider for loop.nvim</strong>
-</p>
+# loop-cmake.nvim
 
-<p align="center">
-  <a href="https://neovim.io/">
-    <img src="https://img.shields.io/badge/Neovim-0.10+-blueviolet.svg?style=flat-square&logo=neovim" alt="Neovim 0.10+">
-  </a>
-  <a href="https://github.com/mbfoss/loop.nvim/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="MIT License">
-  </a>
-</p>
-
----
-
-> [!WARNING]
-> **Work in Progress**: This plugin is in early development and not ready for public release yet.
-
-## Overview
-
-**loop-cmake** is a task provider extension for [loop.nvim](https://github.com/mbfoss/loop.nvim) that automates CMake workflows directly from Neovim. It seamlessly integrates CMake configuration, building, testing, and execution into a unified task system.
+CMake extension for [loop.nvim](https://github.com/mbfoss/loop.nvim). Integrates CMake configuration, building, testing, and execution into the Loop task system. Uses the CMake File-Based API to discover targets and tests.
 
 ## Requirements
 
-- **Neovim** ≥ 0.10
-- **CMake** ≥ 3.29 (for CMake File-Based API support)
-- **loop.nvim** plugin
+- **Neovim** ≥ 0.10  
+- **CMake** ≥ 3.29 (File-Based API support)  
+- **loop.nvim**
+- **loop-build.nvim**
 
 ## Features
 
-**How to use**
-1 - Run `:Loop task configure cmake` to setup profiles, a default configuration is provided, adjust as needed and safe.
-2 - Run `:Loop task add cmake` and import the Configure task(s).
-3 - Run the configure tasks via `Loop task run`
-4 - Run `:Loop task add cmake` again add all cmake/ctest targets should be available for import as tasks.
-
-**Generated task templates**
-- **Configure**: Generate build files for each profile
-- **Build All**: Build all targets in a profile
-- **Build Target**: Build individual targets
-- **Run**: Execute built executables
-- **CTest**: Run individual tests or all tests
-- **CTest Rerun**: Rerun only failed tests
+- **Profiles** — Configure multiple build profiles (Debug, Release, etc.) with source dir, build dir, configure args, and build tool args.
+- **Configure** — Generate build files for each profile via `:Loop cmake configure`.
+- **Task templates** — Import Configure, Build All, Build Target, Run, CTest, and CTest Rerun tasks from the **CMake** category.
+- **Quickfix** — Optional `quickfix_matcher` per profile to parse compiler output into the quickfix list.
 
 ## Installation
 
-Using `lazy.nvim`:
+**lazy.nvim**
 
 ```lua
 {
-  "mbfoss/loop-cmake.nvim",
-  dependencies = { "mbfoss/loop.nvim" },
+    "mbfoss/loop-cmake.nvim",
+    dependencies = { "mbfoss/loop.nvim", "mbfoss/loop-build.nvim" },
 }
 ```
 
-### Configuration Options
+## Quick Start
+
+1. Install loop.nvim, loop-build.nvim and loop-cmake.nvim.
+2. Open a loop workspace in a CMake project (`:Loop workspace create` to create and `:Loop workspace open` to open).
+3. Run `:Loop cmake setup` — Opens the profiles editor. Adjust `cmake_path`, `ctest_path`, and profiles as needed
+4. Run `:Loop cmake configure` — Generates build files for each profile.
+5. Add tasks — Use `:Loop task configure` and add tasks from the **CMake** template category
+6. Run tasks — `:Loop task run` (or `:Loop task run Build`).
+
+## Commands
+
+| Command | Description |
+|--------|-------------|
+| `:Loop cmake setup` | Open the CMake profiles editor. |
+| `:Loop cmake configure` | Run CMake configure for each profile (generates build files). |
+
+## Configuration
+
+Profiles are stored in `.nvimloop/ext.cmake.profiles.json`. Edit via `:Loop cmake setup` or manually.
+
+### Top-level options
 
 | Option | Type | Description | Required |
-|--------|------|-------------|----------|
-| `cmake_path` | string | Path to cmake executable | ✓ |
-| `ctest_path` | string | Path to ctest executable | |
-| `profiles` | array | Array of build profiles | ✓ |
+|-------|------|-------------|----------|
+| `cmake_path` | string | Path to `cmake` executable | ✓ |
+| `ctest_path` | string | Path to `ctest` executable | |
+| `profiles` | array | Build profiles | ✓ |
 
-### Profile Options
+### Profile options
 
 | Option | Type | Description | Required |
 |--------|------|-------------|----------|
 | `name` | string | Profile display name | ✓ |
-| `build_type` | string | CMake build type: `Debug`, `Release`, `RelWithDebInfo`, `MinSizeRel` | ✓ |
-| `source_dir` | string | Path to source root (supports `${wsdir}`) | ✓ |
-| `build_dir` | string | Path to build directory | ✓ |
-| `configure_args` | string\|array | CMake configure arguments | |
-| `build_tool_args` | string\|array | Build tool arguments (e.g., `-j8` for make) | |
-| `quickfix_matcher` | string | [loop.nvim](https://github.com/mbfoss/loop.nvim) Quickfix error matcher | |
+| `build_type` | string | `Debug`, `Release`, `RelWithDebInfo`, `MinSizeRel` | ✓ |
+| `source_dir` | string | Source root (supports `${wsdir}`) | ✓ |
+| `build_dir` | string | Build directory | ✓ |
+| `configure_args` | string \| array | CMake configure arguments | |
+| `build_tool_args` | string \| array | Build tool args (e.g. `-j8` for make) | |
+| `quickfix_matcher` | string | Quickfix matcher (e.g. `gcc`) |  |
 
-## Contributing
+## Default template
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+```json
+{
+  "cmake_path": "cmake",
+  "ctest_path": "ctest",
+  "profiles": [
+    {
+      "name": "Debug",
+      "build_type": "Debug",
+      "source_dir": "${wsdir}",
+      "build_dir": "${wsdir}/build/Debug",
+      "configure_args": ["-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"],
+      "build_tool_args": "-j8",
+      "quickfix_matcher": "gcc"
+    },
+    {
+      "name": "Release",
+      "build_type": "Release",
+      "source_dir": "${wsdir}",
+      "build_dir": "${wsdir}/build/Release",
+      "configure_args": ["-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"],
+      "build_tool_args": "-j8",
+      "quickfix_matcher": "gcc"
+    }
+  ]
+}
+```
+
+## Generated task types
+
+| Type | Description |
+|------|-------------|
+| **Build All** | Build all targets in a profile |
+| **Build Target** | Build a single target |
+| **Run** | Run a built executable |
+| **CTest** | Run tests (all or individual) |
+| **CTest Rerun** | Rerun only failed tests |
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](LICENSE) for details.
+MIT

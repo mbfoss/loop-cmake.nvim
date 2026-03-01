@@ -22,7 +22,6 @@ return {
                     "build_type",
                     "source_dir",
                     "build_dir",
-                    "quickfix_matcher"
                 },
                 ["x-order"] = {
                     "name",
