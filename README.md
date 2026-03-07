@@ -1,3 +1,14 @@
+> [!WARNING]
+> 🚧 **Work in Progress**
+>
+> This plugin is currently under active development.
+>
+> - APIs and configuration may change
+> - Breaking changes can occur without notice
+>
+> Use with caution until a stable release is announced.
+> Issues, suggestions, and contributions are welcome while the project evolves.
+
 # loop-cmake.nvim
 
 CMake extension for [loop.nvim](https://github.com/mbfoss/loop.nvim). Integrates CMake configuration, building, testing, and execution into the Loop task system. Uses the CMake File-Based API to discover targets and tests.
@@ -30,7 +41,7 @@ CMake extension for [loop.nvim](https://github.com/mbfoss/loop.nvim). Integrates
 ## Quick Start
 
 1. Install loop.nvim, loop-build.nvim and loop-cmake.nvim.
-2. Open a loop workspace in a CMake project (`:Loop workspace create` to create and `:Loop workspace open` to open).
+2. Create a loop workspace (`:Loop workspace create`).
 3. Run `:Loop cmake setup` — Opens the profiles editor. Adjust `cmake_path`, `ctest_path`, and profiles as needed
 4. Run `:Loop cmake configure` — Generates build files for each profile.
 5. Add tasks — Use `:Loop task configure` and add tasks from the **CMake** template category
